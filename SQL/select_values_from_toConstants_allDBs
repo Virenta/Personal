@@ -1,0 +1,29 @@
+--created by Vitaliy Barkanov 24.01.2017
+
+IF OBJECT_ID (N'tempdb.dbo.#temp') IS NOT NULL
+   DROP TABLE #temp
+
+CREATE TABLE #temp
+(
+		DB VARCHAR(50)
+    	, [Variable] VARCHAR(50)
+		, [Value] VARCHAR(50)
+)
+DECLARE @command varchar(1000) 
+
+SELECT @command = 
+    'USE [?] IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+     where      TABLE_NAME =  ''Constants''))
+BEGIN
+
+INSERT INTO #temp ([variable], [value], DB)
+Values(
+(select variable from constants where variable like ''GlobalVersion''), (select value from constants where variable like ''GlobalVersion''), (select db_name()))
+ END' 
+EXEC sp_MSforeachdb @command
+
+
+SELECT * 
+FROM #temp t
+order by db
